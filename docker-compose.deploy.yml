@@ -1,0 +1,40 @@
+services:
+  user-service:
+    image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/user-service:v1.0.0
+    container_name: user-service
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  product-service:
+    image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/product-service:v1.0.0
+    container_name: product-service
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  order-service:
+    image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/order-service:v1.0.0
+    container_name: order-service
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: microservices-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
