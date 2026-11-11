@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -23,10 +24,12 @@ pipeline {
         stage('Validate') {
             steps {
                 sh '''
+                    set -e
                     test -f user-service/Dockerfile
                     test -f product-service/Dockerfile
                     test -f order-service/Dockerfile
-                    docker compose -f docker-compose.deploy.yml config
+                    docker compose -f docker-compose.deploy.yml config --quiet
+                    echo "Validation successful"
                 '''
             }
         }
@@ -71,7 +74,25 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    sleep 5
+
+                    for SERVICE in user-service product-service order-service; do
+                        for i in $(seq 1 12); do
+                            STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$SERVICE")
+
+                            if [ "$STATUS" = "healthy" ]; then
+                                echo "$SERVICE: healthy"
+                                break
+                            fi
+
+                            if [ "$i" -eq 12 ]; then
+                                echo "$SERVICE failed health check"
+                                exit 1
+                            fi
+
+                            sleep 5
+                        done
+                    done
+
                     for PATH_NAME in user products orders; do
                         curl -fsS "http://localhost/$PATH_NAME/" > /dev/null
                         echo "$PATH_NAME route: OK"
@@ -85,8 +106,10 @@ pipeline {
         success {
             echo 'Microservices build and deployment completed successfully.'
         }
+
         failure {
             echo 'Pipeline failed. Check the stage logs before retrying.'
         }
     }
 }
+

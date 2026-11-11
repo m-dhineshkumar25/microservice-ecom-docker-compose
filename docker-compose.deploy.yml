@@ -3,6 +3,12 @@ services:
     image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/user-service:${IMAGE_TAG:-v1.0.0}
     container_name: user-service
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - app-network
 
@@ -10,6 +16,12 @@ services:
     image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/product-service:${IMAGE_TAG:-v1.0.0}
     container_name: product-service
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - app-network
 
@@ -17,6 +29,12 @@ services:
     image: 595236027539.dkr.ecr.ap-south-2.amazonaws.com/order-service:${IMAGE_TAG:-v1.0.0}
     container_name: order-service
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - app-network
 
